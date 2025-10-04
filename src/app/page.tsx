@@ -22,9 +22,6 @@ import {
 
 // =====================================================
 // Canvas‑friendly portfolio (no <canvas>)
-// - Fixes: stray CSS/JSX, unwrapped JSX, separators & borders overlaying photo
-// - Adds: pulsing underline glow on nav, boxed social hovers, skills cursor spotlight,
-//         holographic photo card
 // =====================================================
 
 function ThemeVars() {
@@ -79,16 +76,12 @@ html.dark { color-scheme: dark; }
 /* === Ephraim‑style FA hover: slide-up fill + 360° Y-rotation === */
 .fa-flip{isolation:isolate; perspective:600px}
 .fa-flip::before{content:"";position:absolute;inset:0;border-radius:inherit;transform:translateY(110%);transition:transform .35s ease;z-index:0;}
-/* brand fill for the slide */
 .btn-gh.fa-flip:hover::before{background:hsl(var(--brand-gh));}
 .btn-li.fa-flip:hover::before{background:hsl(var(--brand-li));}
 .btn-ig.fa-flip:hover::before{background:linear-gradient(135deg,#feda75 0%,#fa7e1e 25%,#d62976 50%,#962fbf 75%,#4f5bd5 100%);} 
-/* raise content above fill */
 .fa-flip > *{position:relative; z-index:1}
-/* flip the icon */
 .fa-flip svg{transition:transform .6s cubic-bezier(.2,.7,.2,1); transform-style:preserve-3d}
 .fa-flip:hover svg{transform:rotateY(360deg)}
-/* make text readable over filled bg */
 .fa-flip:hover{color:#fff}
 
 /* === Holographic photo card === */
@@ -113,9 +106,8 @@ html.dark { color-scheme: dark; }
 .fx-card .fx-shimmer{background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);background-size:200% 100%;background-position:-100% 0;}
 .fx-card:hover .fx-shimmer{animation:fx-sheen 1s ease}
 @keyframes fx-sheen{to{background-position:100% 0}}
-/* Extra hover candy for Experience/Education */
 .expfx{transform-style:preserve-3d}
-.expfx::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;border-top-left-radius:1.1rem;border-top-right-radius:1.1rem;background:linear-gradient(90deg,#60a5fa,#a78bfa,#34d399,#fbbf24);transform:translateX(-25%);opacity:0;transition:transform .45s ease, opacity .35s ease}
+.expfx::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;border-top-left-radius:1.1rem;border-top-right:1.1rem;background:linear-gradient(90deg,#60a5fa,#a78bfa,#34d399,#fbbf24);transform:translateX(-25%);opacity:0;transition:transform .45s ease, opacity .35s ease}
 .expfx:hover::before{transform:translateX(0);opacity:1}
 .expfx:hover{transform:translateY(-6px) rotateY(6deg)}
 
@@ -127,7 +119,6 @@ html.dark { color-scheme: dark; }
 
 /* === Utility icon button === */
 .btn-icon { height: 2.25rem; width: 2.25rem; padding:0; border: 1px solid hsl(var(--border)); border-radius: 0.5rem; display:inline-flex; align-items:center; justify-content:center; }
-/* Alerts for form */
 .alert{border:1px solid transparent;border-radius:.6rem;padding:.6rem .8rem;font-size:.9rem}
 .alert-success{border-color:#16a34a1a;background:#16a34a10;color:#16a34a}
 .alert-error{border-color:#ef44441a;background:#ef444410;color:#ef4444}
@@ -142,7 +133,6 @@ html.dark { color-scheme: dark; }
 .social-btn:hover svg{transform:translateY(-1px) scale(1.05)}
 .social-btn:active{transform:translateY(0);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .social-btn:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px currentColor}
-/* Instagram rainbow burst */
 .btn-ig:hover::before{background:radial-gradient(140px 140px at 50% 50%, #feda75 0%, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5 100%);opacity:.35}
 
 /* === Tilt card cursor effect for Experience/Education === */
@@ -267,8 +257,6 @@ const Badge = ({ children }: any) => (
 // =====================================================
 // Data
 // =====================================================
-// Optional: Formspree ID. If you create a form at Formspree, paste its ID below
-// Example: const FORMSPREE_ID = "xyzzabcd"; (URL becomes https://formspree.io/f/xyzzabcd)
 const FORMSPREE_ID = "";
 const FORMSPREE_URL = FORMSPREE_ID
   ? `https://formspree.io/f/${FORMSPREE_ID}`
@@ -296,7 +284,7 @@ const SKILLS = [
   { name: "HTML", icon: "/skills/html.jpeg" },
   { name: "CSS", icon: "/skills/css.jpeg" },
   { name: "JavaScript", icon: "/skills/JavaScript.jpeg" },
-  { name: "C#", icon: "/skills/Cslash.jpeg" },
+  { name: "C#", icon: "/skills/cslash.jpeg" },
   { name: "Docker", icon: "/skills/docker.jpeg" },
   { name: "Java", icon: "/skills/java.jpeg" },
   { name: "MySQL", icon: "/skills/MySQL.jpeg" },
@@ -304,7 +292,7 @@ const SKILLS = [
   { name: "React", icon: "/skills/React.jpeg" },
   { name: "Swagger API", icon: "/skills/swaggerapi.jpeg" },
   { name: "Github", icon: "/skills/github.jpeg" },
-  { name: "VS Code", icon: "/skills/Vscode.jpeg" },
+  { name: "VS Code", icon: "/skills/vsscode.jpeg" },
 ];
 
 const PROJECTS = [
@@ -426,7 +414,7 @@ function useThemeToggle() {
   return { dark, setDark };
 }
 
-// ========================= Animated Role =========================
+// ========================= Animated Role (UPDATED, FE icon removed) =========================
 const AnimatedRole = ({ roles }: { roles: string[] }) => {
   const [index, setIndex] = React.useState(0);
   const [sub, setSub] = React.useState(0);
@@ -459,27 +447,26 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
   }, [dir, sub, roles.length, TARGET.length, index]);
 
   const display = TARGET.slice(0, sub);
-  let baseClass = "text-neutral-900 dark:text-neutral-100";
-  if (/front[- ]?end/i.test(TARGET))
-    baseClass = "text-neutral-900 dark:text-neutral-100";
-  if (/servicenow/i.test(TARGET))
-    baseClass = "text-neutral-900 dark:text-neutral-100";
 
-  const lastSpace = TARGET.lastIndexOf(" ");
-  const lastWordStart = lastSpace >= 0 ? lastSpace + 1 : -1;
-  const snGreen = "#62D84F",
-    snTextHex = "#032D42",
-    feTextHex = "#032D42";
-  const isSN = /servicenow/i.test(TARGET),
-    isFE = /front[- ]?end/i.test(TARGET);
+  const snGreen = "#62D84F";
+  const snTextHex = "#032D42";
+  const isSN = /servicenow/i.test(TARGET);
+  const isFE = /front[- ]?end/i.test(TARGET);
+  const darkMode =
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark");
+
   const nowPos = isSN ? TARGET.toLowerCase().indexOf("now") : -1;
   const oIndex = nowPos >= 0 ? nowPos + 1 : -1;
   const devPos = isSN ? TARGET.toLowerCase().indexOf("developer") : -1;
   const devOIndex = devPos >= 0 ? devPos + "developer".indexOf("o") : -1;
-  const feDevPos = isFE ? TARGET.toLowerCase().indexOf("developer") : -1;
-  const feDevEnd = feDevPos >= 0 ? feDevPos + "developer".length - 1 : -1;
 
-  const ServiceNowO = () => {
+  const lastSpace = TARGET.lastIndexOf(" ");
+  const lastWordStart = lastSpace >= 0 ? lastSpace + 1 : -1;
+
+  const roleColor = isSN || isFE ? (darkMode ? snGreen : snTextHex) : undefined;
+
+  const ServiceNowO = ({ darkMode }: { darkMode: boolean }) => {
     const maskId = React.useId();
     return (
       <span
@@ -513,47 +500,15 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
             cx="50"
             cy="50"
             r="45"
-            fill={snGreen}
+            fill={darkMode ? snTextHex : snGreen}
+            stroke={darkMode ? snGreen : "none"}
+            strokeWidth={darkMode ? 8 : 0}
             mask={`url(#${maskId})`}
           />
         </svg>
       </span>
     );
   };
-
-  const FrontEndCode = () => (
-    <span
-      aria-label="Front-End code icon"
-      className="inline-block align-baseline"
-      style={{
-        width: "1.15em",
-        height: "1.15em",
-        position: "relative",
-        top: "0.13em",
-        margin: "0 0 0 0.30ch",
-      }}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        width="100%"
-        height="100%"
-        role="img"
-        focusable="false"
-      >
-        <g
-          fill="none"
-          stroke="#62D84E"
-          strokeWidth="2.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M7 4 L2 12 L7 20" />
-          <path d="M17 4 L22 12 L17 20" />
-          <path d="M10 4 L14 20" />
-        </g>
-      </svg>
-    </span>
-  );
 
   return (
     <div className="mt-2">
@@ -565,32 +520,31 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
         aria-live="polite"
       >
         {display.split("").map((ch, i) => {
-          if (isSN && (i === oIndex || i === devOIndex))
-            return <ServiceNowO key={i} />;
-          const cls = baseClass;
-          const styleObj: any = {};
-          if (isSN) styleObj.color = snTextHex;
-          if (isFE) styleObj.color = feTextHex;
+          if (isSN && (i === oIndex || i === devOIndex)) {
+            return <ServiceNowO key={`sn-o-${i}`} darkMode={!!darkMode} />;
+          }
+
+          const styleObj: React.CSSProperties = {};
+          if (roleColor) styleObj.color = roleColor;
           if (i === lastWordStart) styleObj.marginInlineStart = "0.35ch";
-          if ((isSN || isFE) && i === 0)
+
+          // Optional: keep outlined "F" styling without the symbol
+          if (isFE && i === 0 && darkMode) {
             Object.assign(styleObj, {
-              fontSize: "1.25em",
-              lineHeight: 1,
-              display: "inline-block",
-              verticalAlign: "-0.02em",
-              ...(isFE ? { color: "#62D84E" } : {}),
+              color: snTextHex,
+              WebkitTextStroke: `1.3px ${snGreen}`,
+              textStroke: `1.3px ${snGreen}` as any,
             });
-          if (isFE && i === feDevEnd)
-            return (
-              <React.Fragment key={`fe-end-${i}`}>
-                <span key={`fe-ch-${i}`} className={cls} style={styleObj}>
-                  {ch}
-                </span>
-                <FrontEndCode />
-              </React.Fragment>
-            );
+          } else if (isFE && i === 0) {
+            Object.assign(styleObj, { color: snGreen });
+          }
+
           return (
-            <span key={i} className={cls} style={styleObj}>
+            <span
+              key={i}
+              className="text-neutral-900 dark:text-neutral-100"
+              style={styleObj}
+            >
               {ch}
             </span>
           );
@@ -621,13 +575,12 @@ function NameWithGradient({ name }: { name: string }) {
 }
 
 // ========================= Image block =========================
-
 export function HeadshotInteractive({
   src,
   alt,
   reduce,
   width = 420,
-  height = 520, // <-- you can now control this
+  height = 520,
 }: {
   src: string;
   alt: string;
@@ -641,12 +594,8 @@ export function HeadshotInteractive({
   return (
     <div
       className="relative group mx-auto rounded-3xl overflow-visible"
-      style={{
-        width,
-        height, // 👈 height is now explicitly controlled
-      }}
+      style={{ width, height }}
     >
-      {/* 🌈 Animated NEON GLOW — behind image */}
       <motion.div
         className="absolute -inset-16 z-0 rounded-[3rem]"
         animate={motionOff ? { rotate: 0 } : { rotate: 360 }}
@@ -659,7 +608,6 @@ export function HeadshotInteractive({
         }}
       />
 
-      {/* 🖼️ Image — on top of glow */}
       <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl h-full w-full">
         <img
           src={src}
@@ -669,7 +617,6 @@ export function HeadshotInteractive({
         />
       </div>
 
-      {/* 🕳️ Subtle shadow depth */}
       <div
         className="absolute inset-0 z-0 rounded-[3rem]"
         style={{
@@ -730,7 +677,7 @@ function MobileMenu() {
   );
 }
 
-// ========================= Tilt wrapper (for Experience/Education) =========================
+// ========================= Tilt wrapper =========================
 function TiltCard({ children }: { children: React.ReactNode }) {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const onMove = (e: React.MouseEvent) => {
@@ -738,7 +685,7 @@ function TiltCard({ children }: { children: React.ReactNode }) {
     const r = el.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
-    const rx = (y / r.height - 0.5) * -8; // natural tilt
+    const rx = (y / r.height - 0.5) * -8;
     const ry = (x / r.width - 0.5) * 8;
     el.style.setProperty("--rx", rx.toFixed(2) + "deg");
     el.style.setProperty("--ry", ry.toFixed(2) + "deg");
@@ -769,7 +716,7 @@ const ExperienceCard = ({ company, logo, role, period, points }: any) => (
           <img
             src={logo}
             alt={`${company} logo`}
-            className="h-28 w-28 rounded-lg object-contain shadow-sm md:h-32 md:w-32"
+            className="h-20 w-20 rounded-lg object-contain shadow-sm md:h-30 md:w-2000"
             loading="lazy"
             decoding="async"
           />
@@ -801,7 +748,7 @@ const EducationCard = ({ school, logo, degree, period }: any) => (
           <img
             src={logo}
             alt={`${school} logo`}
-            className="h-10 w-10 rounded object-contain"
+            className="h-25 w-25 rounded object-contain"
             loading="lazy"
             decoding="async"
           />
@@ -856,7 +803,7 @@ function SkillsSpotlight({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ========================= Contact form (Formspree + mailto fallback) =========================
+// ========================= Contact form =========================
 function ContactForm() {
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -896,7 +843,6 @@ function ContactForm() {
         setEmail("");
         setMessage("");
       } else {
-        // Fallback to mailto if no Formspree ID configured
         const subject = encodeURIComponent(
           `New portfolio message from ${name}`
         );
@@ -965,12 +911,12 @@ export default function Portfolio() {
     <div className="min-h-screen bg-background text-foreground">
       <ThemeVars />
 
-      {/* Background glows (no borders) */}
+      {/* Background glows */}
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-40 [mask-image:radial-gradient(60%_40%_at_50%_0%,black,transparent)]">
         <div className="absolute inset-0 bg-[radial-gradient(1000px_500px_at_50%_-10%,oklch(0.75_0.2_280/.25),transparent),radial-gradient(800px_400px_at_10%_10%,oklch(0.75_0.2_200/.25),transparent),radial-gradient(800px_400px_at_90%_20%,oklch(0.75_0.2_20/.25),transparent)]" />
       </div>
 
-      {/* Header (no bottom border) */}
+      {/* Header */}
       <header className="sticky top-0 z-40 w-full bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
@@ -999,7 +945,7 @@ export default function Portfolio() {
         </div>
       </header>
 
-      {/* Hero (no section borders) */}
+      {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="grid items-center gap-8 py-16 md:grid-cols-2">
@@ -1353,10 +1299,7 @@ export default function Portfolio() {
               <Input type="email" placeholder="Your email" />
               <Textarea rows={5} placeholder="Tell me about your project…" />
               <Btn className="w-full">Send message</Btn>
-              <p className="text-xs text-muted-foreground">
-                This demo form does not submit. Hook it to your favorite form
-                backend (Formspree, Resend, Airtable, etc.).
-              </p>
+              <p className="text-xs text-muted-foreground"></p>
             </CardContent>
           </Card>
         </div>
