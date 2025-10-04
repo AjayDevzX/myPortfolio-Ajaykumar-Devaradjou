@@ -319,33 +319,33 @@ const PROJECTS = [
   {
     title: "ServiceNow - ITSM & CMDB",
     description:
-      "A fast photo sharing site with edge image transforms and optimistic UI.",
-    tags: ["Remix", "Cloudflare", "Prisma"],
+      "Implementation and customization of ServiceNow ITSM modules (Incident, Change, Problem, and Catalog) with CMDB administration aligned to ITIL® best practices. Developed dashboards, reports, and automation workflows to improve IT asset visibility and service efficiency.",
+    tags: ["ServiceNow", "ITSM", "CMDB", "ITIL", "Automation", "Agile"],
     image: "/projects/servicenowimage.png",
   },
   {
-    title: "E-commerce website",
+    title: "E-commerce Website",
     description:
-      "Dashboard that visualizes market signals with live websockets and caching.",
-    tags: ["Vite", "React", "Tailwind", "WebSockets"],
+      "Full-stack e-commerce platform developed with PHP, MySQL, HTML, CSS, and JavaScript. Features include secure user authentication, product catalog management, shopping cart, order processing, and database backup and restoration.",
+    tags: ["PHP", "MySQL", "JavaScript", "HTML", "CSS"],
     image: "/projects/ecommerce.png",
-    repo: "",
+    repo: "https://github.com/AjayDevzX/e-commerce-webcentric.git",
   },
   {
     title: "Reducing Food Waste",
     description:
-      "Dashboard that visualizes market signals with live websockets and caching.",
-    tags: ["Vite", "React", "Tailwind", "WebSockets"],
+      "Java-based application designed to minimize food waste by tracking inventory, monitoring expiration dates, and suggesting optimized usage or donations. Implements CRUD operations, file management, and a user-friendly interface for sustainable food management.",
+    tags: ["Java", "OOP", "MySQL", "Swing", "Sustainability"],
     image: "/projects/foodwaste.png",
-    repo: "https://github.com/yourname/stocksense",
+    repo: "https://github.com/AjayDevzX/reducing-food-waste-java.git",
   },
   {
     title: "Tic Tac Toe",
     description:
-      "Dashboard that visualizes market signals with live websockets and caching.",
-    tags: ["Vite", "React", "Tailwind", "WebSockets"],
+      "Interactive Tic Tac Toe game built with Java implementing game logic, win detection, and a simple GUI for two players. Focused on object-oriented programming principles and clean interface design.",
+    tags: ["Java", "OOP", "Game Development", "Swing"],
     image: "/projects/tictactoe.png",
-    repo: "https://github.com/yourname/stocksense",
+    repo: "https://github.com/AjayDevzX/Tic_tac_toe.git",
   },
 ];
 
@@ -709,7 +709,6 @@ function HeadshotInteractive({
     </div>
   );
 }
-
 // ========================= Mobile menu =========================
 function MobileMenu() {
   const [open, setOpen] = React.useState(false);
