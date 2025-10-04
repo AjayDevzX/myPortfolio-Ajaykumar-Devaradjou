@@ -1067,15 +1067,27 @@ export default function Portfolio() {
               </CardHeader>
               <CardContent className="space-y-3 text-muted-foreground">
                 <p>
-                  I turn product ideas into polished, production systems. My
-                  sweet spot is modern web stacks: React/Next.js on the front,
-                  Node/Edge on the back, with a strong eye for design and
-                  performance.
-                </p>
+                  I’m a Master’s student in Software Engineering & Digital
+                  Transformation at ESIGELEC, France, seeking a 4–6-month
+                  end-of-studies internship, available immediately. I have 2
+                  years of experience as a ServiceNow Developer at Tata
+                  Consultancy Services, where I worked on ITSM modules, CMDB
+                  management, and process optimization aligned with ITIL®
+                  practices.
+                </p>{" "}
                 <p>
-                  I care about developer experience, accessibility, and
-                  meaningful micro-interactions. I love collaborating with
-                  design, product, and data to ship experiences that feel magic.
+                  I specialize in ServiceNow development and administration,
+                  focusing on automation, data accuracy, and user-friendly
+                  workflows. My experience also includes working in Agile/Scrum
+                  environments and collaborating with multidisciplinary teams to
+                  improve service efficiency.
+                </p>{" "}
+                <p>
+                  In addition, I’m passionate about front-end development,
+                  building responsive and accessible interfaces with HTML, CSS,
+                  JavaScript, and React. I enjoy combining ServiceNow expertise
+                  with modern web technologies to deliver seamless,
+                  high-performance digital experiences.
                 </p>
               </CardContent>
             </Card>
