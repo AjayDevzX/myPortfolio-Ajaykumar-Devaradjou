@@ -628,11 +628,12 @@ function HeadshotInteractive({
 }: {
   src: string;
   alt: string;
-  reduce?: boolean;
+  reduce?: boolean | null; // ← allow null here
   size?: number;
 }) {
-  const prefers = useReducedMotion();
-  const motionOff = typeof reduce === "boolean" ? reduce : prefers;
+  const prefers = useReducedMotion(); // boolean | null on SSR
+  const motionOff = reduce ?? prefers ?? true; // ← always a boolean (safe default)
+
   return (
     <div
       className="relative group mx-auto"
