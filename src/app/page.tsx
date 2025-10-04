@@ -282,7 +282,7 @@ const PROFILE = {
   phone: "+33 6 61 84 70 78",
   headshot: "ajaydevapicaj.jpg",
   bio: "Building on ServiceNow and modern web stacks, I create apps that are fast, accessible, and enjoyable to use.",
-  resumeUrl: "/resume.pdf",
+  resumeUrl: "/cv/Devaradjou_CV_.pdf",
   socials: {
     github: "https://github.com/AjayDevzX",
     linkedin: "https://www.linkedin.com/in/ajaykumar-devaradjou-72a441199/",
@@ -292,8 +292,8 @@ const PROFILE = {
 
 const SKILLS = [
   { name: "Servicenow", icon: "/skills/servicenowlogooo.jpeg" },
-  { name: "CMDB", icon: "/skills/cmdbb.jpg" },
-  { name: "HTML", icon: "/skills/HTML.jpeg" },
+  { name: "CMDB", icon: "/skills/cmdb.jpg" },
+  { name: "HTML", icon: "/skills/html.jpeg" },
   { name: "CSS", icon: "/skills/css.jpeg" },
   { name: "JavaScript", icon: "/skills/JavaScript.jpeg" },
   { name: "C#", icon: "/skills/Cslash.jpeg" },
@@ -304,7 +304,7 @@ const SKILLS = [
   { name: "React", icon: "/skills/React.jpeg" },
   { name: "Swagger API", icon: "/skills/swaggerapi.jpeg" },
   { name: "Github", icon: "/skills/github.jpeg" },
-  { name: "VS Code", icon: "/skills/Visual studio code.jpeg" },
+  { name: "VS Code", icon: "/skills/Vscode.jpeg" },
 ];
 
 const PROJECTS = [
@@ -356,9 +356,10 @@ const EXPERIENCE = [
     role: "ServiceNow Developer",
     period: "2021 — 2023",
     points: [
-      "Led migration to Next.js App Router, improving TTFB by 42%",
-      "Built a design system with shadcn/ui, reducing UI delivery time by 35%",
-      "Mentored 4 engineers across performance and accessibility",
+      "Implemented ITSM modules (Incident, Change, Problem, Catalog) aligned with ITIL® best practices",
+      "Optimized CMDB accuracy and automated asset tracking workflows",
+      "Developed custom dashboards for performance monitoring and KPIs",
+      "Contributed to digital transformation initiatives using Agile/Scrum",
     ],
   },
 ];
@@ -620,95 +621,65 @@ function NameWithGradient({ name }: { name: string }) {
 }
 
 // ========================= Image block =========================
-function HeadshotInteractive({
+
+export function HeadshotInteractive({
   src,
   alt,
   reduce,
-  size = 420,
+  width = 420,
+  height = 520, // <-- you can now control this
 }: {
   src: string;
   alt: string;
-  reduce?: boolean | null; // ← allow null here
-  size?: number;
+  reduce?: boolean | null;
+  width?: number;
+  height?: number;
 }) {
-  const prefers = useReducedMotion(); // boolean | null on SSR
-  const motionOff = reduce ?? prefers ?? true; // ← always a boolean (safe default)
+  const prefers = useReducedMotion();
+  const motionOff = reduce ?? prefers ?? false;
 
   return (
     <div
-      className="relative group mx-auto"
-      style={{ width: size, height: size }}
+      className="relative group mx-auto rounded-3xl overflow-visible"
+      style={{
+        width,
+        height, // 👈 height is now explicitly controlled
+      }}
     >
-      {/* Outer glow (no borders overlapping sections) */}
+      {/* 🌈 Animated NEON GLOW — behind image */}
       <motion.div
-        className="pointer-events-none absolute -inset-8 z-0 rounded-[2rem]"
+        className="absolute -inset-16 z-0 rounded-[3rem]"
         animate={motionOff ? { rotate: 0 } : { rotate: 360 }}
-        transition={{ duration: 28, ease: "linear", repeat: Infinity }}
+        transition={{ duration: 14, ease: "linear", repeat: Infinity }}
         style={{
           background:
-            "conic-gradient(from 0deg at 50% 50%, rgba(99,102,241,.28), rgba(16,185,129,.24), rgba(251,191,36,.20), rgba(99,102,241,.28))",
-          filter: "blur(34px)",
-          opacity: 0.55,
-        }}
-      />
-      <div
-        className="pointer-events-none absolute -inset-8 z-0 rounded-[2rem] blur-2xl"
-        style={{
-          background:
-            "radial-gradient(520px 340px at 50% 20%, rgba(255,255,255,.18), transparent 60%),radial-gradient(460px 300px at 15% 30%, rgba(99,102,241,.18), transparent),radial-gradient(460px 300px at 85% 30%, rgba(16,185,129,.16), transparent)",
-          opacity: 0.35,
+            "conic-gradient(from 0deg at 50% 50%, rgba(99,102,241,.45), rgba(16,185,129,.4), rgba(251,191,36,.35), rgba(99,102,241,.45))",
+          filter: "blur(60px)",
+          opacity: 0.8,
         }}
       />
 
-      <motion.div
-        className="relative z-10 h-full w-full"
-        whileHover={motionOff ? undefined : { scale: 1.02 }}
-        transition={{ type: "spring", stiffness: 200, damping: 18, mass: 0.5 }}
-      >
-        <div className="holo-wrap">
-          <span className="holo-border" aria-hidden />
-          <Card className="relative h-full w-full overflow-hidden rounded-3xl">
-            <CardContent className="relative h-full w-full p-0">
-              <motion.img
-                src={src}
-                alt={alt}
-                className="h-full w-full select-none object-cover"
-                draggable={false}
-                animate={
-                  motionOff
-                    ? { scale: 1, x: 0, y: 0 }
-                    : { scale: [1.02, 1.06, 1.02], x: [0, -8, 0], y: [0, 8, 0] }
-                }
-                transition={{
-                  duration: 18,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                }}
-              />
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  background:
-                    "radial-gradient(220px 180px at 50% 18%, rgba(255,255,255,.18), transparent 60%)",
-                  mixBlendMode: "soft-light",
-                }}
-              />
-              <div
-                className="pointer-events-none absolute inset-0 rounded-[1.6rem]"
-                style={{
-                  boxShadow:
-                    "inset 0 24px 64px rgba(0,0,0,.28), inset 0 -24px 64px rgba(0,0,0,.32), inset 24px 0 64px rgba(0,0,0,.18), inset -24px 0 64px rgba(0,0,0,.18)",
-                }}
-              />
-              <span className="holo-sheen" aria-hidden />
-              <span className="holo-noise" aria-hidden />
-            </CardContent>
-          </Card>
-        </div>
-      </motion.div>
+      {/* 🖼️ Image — on top of glow */}
+      <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl h-full w-full">
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-110"
+        />
+      </div>
+
+      {/* 🕳️ Subtle shadow depth */}
+      <div
+        className="absolute inset-0 z-0 rounded-[3rem]"
+        style={{
+          boxShadow: "0 40px 100px rgba(0,0,0,.4), 0 10px 40px rgba(0,0,0,.3)",
+        }}
+      />
     </div>
   );
 }
+
 // ========================= Mobile menu =========================
 function MobileMenu() {
   const [open, setOpen] = React.useState(false);
@@ -980,12 +951,7 @@ ${message}`);
           {status.msg}
         </div>
       )}
-      {!FORMSPREE_URL && (
-        <p className="text-xs text-muted-foreground">
-          Tip: set <code>FORMSPREE_ID</code> near the top of this file to enable
-          direct form submission. Using mailto fallback now.
-        </p>
-      )}
+      {!FORMSPREE_URL && <p className="text-xs text-muted-foreground"></p>}
     </form>
   );
 }
@@ -1133,7 +1099,7 @@ export default function Portfolio() {
               src={PROFILE.headshot}
               alt={`${PROFILE.name} headshot`}
               reduce={reduce}
-              size={440}
+              width={440}
             />
           </div>
         </div>
