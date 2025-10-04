@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 // =====================================================
-// Canvas‑friendly portfolio (no <canvas>)
+// friendly portfolio
 // =====================================================
 
 function ThemeVars() {
@@ -1255,8 +1255,8 @@ export default function Portfolio() {
               </div>
               <p className="text-sm text-muted-foreground">
                 For the fastest response, email me directly or connect on
-                LinkedIn. I am open to freelance, full-time, and collaborative
-                builds.
+                LinkedIn. I am open to End-of-studies internship , and
+                collaborative builds.
               </p>
               <div className="flex flex-wrap gap-3">
                 <a
@@ -1292,14 +1292,126 @@ export default function Portfolio() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Send a message</CardTitle>
+              <CardTitle>Get in Touch</CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-3">
-              <Input placeholder="Your name" />
-              <Input type="email" placeholder="Your email" />
-              <Textarea rows={5} placeholder="Tell me about your project…" />
-              <Btn className="w-full">Send message</Btn>
-              <p className="text-xs text-muted-foreground"></p>
+              {(() => {
+                const React = require("react");
+                const { useState } = React as typeof import("react");
+
+                const Form = () => {
+                  const [status, setStatus] = useState<
+                    "idle" | "sending" | "success" | "error"
+                  >("idle");
+                  const [message, setMessage] = useState<string>("");
+
+                  async function handleSubmit(
+                    e: React.FormEvent<HTMLFormElement>
+                  ) {
+                    e.preventDefault();
+                    setMessage("");
+
+                    const form = e.currentTarget;
+                    const formData = new FormData(form);
+
+                    // ✅ Check that message has at least 10 characters
+                    const messageValue =
+                      (formData.get("message") as string)?.trim() || "";
+                    if (messageValue.length < 10) {
+                      setStatus("error");
+                      setMessage(
+                        "Please enter at least 10 characters in the message."
+                      );
+                      return;
+                    }
+
+                    setStatus("sending");
+
+                    try {
+                      const res = await fetch(
+                        "https://api.web3forms.com/submit",
+                        {
+                          method: "POST",
+                          body: formData,
+                        }
+                      );
+                      const data = await res.json();
+
+                      if (data.success) {
+                        setStatus("success");
+                        setMessage("Thanks! Your message has been sent.");
+                        form.reset();
+                      } else {
+                        setStatus("error");
+                        setMessage(
+                          data.message ||
+                            "Something went wrong. Please try again."
+                        );
+                      }
+                    } catch (err) {
+                      setStatus("error");
+                      setMessage("Network error. Please try again.");
+                    }
+                  }
+
+                  return (
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                      <input
+                        type="hidden"
+                        name="access_key"
+                        value="0c9ad70d-15a4-4eaa-8d4a-df6a10277c13"
+                      />
+                      <input
+                        type="hidden"
+                        name="subject"
+                        value="New message from portfolio"
+                      />
+                      <input
+                        type="checkbox"
+                        name="botcheck"
+                        className="hidden"
+                        tabIndex={-1}
+                        autoComplete="off"
+                      />
+
+                      <Input name="name" placeholder="Your name" required />
+                      <Input
+                        type="email"
+                        name="email"
+                        placeholder="Your email"
+                        required
+                      />
+                      <Textarea
+                        rows={5}
+                        name="message"
+                        placeholder="Tell me about your project…"
+                        required
+                      />
+
+                      <Btn
+                        type="submit"
+                        className="w-full"
+                        disabled={status === "sending"}
+                      >
+                        {status === "sending" ? "Sending…" : "Send message"}
+                      </Btn>
+
+                      <p
+                        className={`text-xs ${
+                          status === "error"
+                            ? "text-red-500"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {message}
+                      </p>
+                    </form>
+                  );
+                };
+
+                return <Form />;
+              })()}
             </CardContent>
           </Card>
         </div>
