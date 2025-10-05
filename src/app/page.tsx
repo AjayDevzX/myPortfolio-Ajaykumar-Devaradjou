@@ -270,7 +270,7 @@ const PROFILE = {
   phone: "+33 6 61 84 70 83",
   headshot: "ajaydevapicaj.jpg",
   bio: "Building on ServiceNow and modern web stacks, I create apps that are fast, accessible, and enjoyable to use.",
-  resumeUrl: "/cv/Devaradjou_CV_Ajay.pdf",
+  resumeUrl: "/cv/Ajaykumar_Devaradjou-CV.pdf",
   socials: {
     github: "https://github.com/AjayDevzX",
     linkedin: "https://www.linkedin.com/in/ajaykumar-devaradjou-72a441199/",
