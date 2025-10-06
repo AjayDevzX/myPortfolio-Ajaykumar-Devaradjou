@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  useSpring,
+} from "framer-motion";
+
 import {
   Github,
   Linkedin,
@@ -579,25 +587,18 @@ export function HeadshotInteractive({
   src,
   alt,
   reduce,
-  width = 420,
-  height = 520,
 }: {
   src: string;
   alt: string;
   reduce?: boolean | null;
-  width?: number;
-  height?: number;
 }) {
   const prefers = useReducedMotion();
   const motionOff = reduce ?? prefers ?? false;
 
   return (
-    <div
-      className="relative group mx-auto rounded-3xl overflow-visible"
-      style={{ width, height }}
-    >
+    <div className="relative group mx-auto w-full max-w-[420px] aspect-[21/26] rounded-3xl overflow-visible">
       <motion.div
-        className="absolute -inset-16 z-0 rounded-[3rem]"
+        className="absolute -inset-12 sm:-inset-16 z-0 rounded-[3rem]"
         animate={motionOff ? { rotate: 0 } : { rotate: 360 }}
         transition={{ duration: 14, ease: "linear", repeat: Infinity }}
         style={{
@@ -608,12 +609,12 @@ export function HeadshotInteractive({
         }}
       />
 
-      <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl h-full w-full">
+      <div className="relative z-10 h-full w-full rounded-3xl overflow-hidden shadow-2xl">
         <img
           src={src}
           alt={alt}
           draggable={false}
-          className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-110"
+          className="block h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
         />
       </div>
 
@@ -1045,7 +1046,6 @@ export default function Portfolio() {
               src={PROFILE.headshot}
               alt={`${PROFILE.name} headshot`}
               reduce={reduce}
-              width={440}
             />
           </div>
         </div>
