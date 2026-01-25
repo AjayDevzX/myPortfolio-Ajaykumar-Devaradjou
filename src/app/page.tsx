@@ -207,7 +207,7 @@ const Card = ({ className = "", children }: any) => (
   <div
     className={cx(
       "rounded-2xl border bg-background/60 backdrop-blur-sm",
-      className
+      className,
     )}
   >
     {children}
@@ -229,7 +229,7 @@ const Input = (props: any) => (
     className={cx(
       "w-full rounded-md border bg-background px-3 py-2 text-sm",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
-      props.className || ""
+      props.className || "",
     )}
   />
 );
@@ -239,7 +239,7 @@ const Textarea = (props: any) => (
     className={cx(
       "w-full rounded-md border bg-background px-3 py-2 text-sm",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
-      props.className || ""
+      props.className || "",
     )}
   />
 );
@@ -273,7 +273,7 @@ const PROFILE = {
   name: "Ajaykumar DEVARADJOU",
   role: "Front-End & ServiceNow Developer",
   roles: ["ServiceNow Developer", "Front-End Developer"],
-  location: "Noisiel, France",
+  location: "Ivry-sur-Seine, France",
   email: "ajaykumar123d@gmail.com",
   phone: "+33 6 61 84 70 83",
   headshot: "ajaydevoteam.jpeg",
@@ -436,7 +436,7 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
   const [index, setIndex] = React.useState(0);
   const [sub, setSub] = React.useState(0);
   const [dir, setDir] = React.useState<"typing" | "deleting" | "pause">(
-    "typing"
+    "typing",
   );
   const TYPE_MS = 70,
     DELETE_MS = 45,
@@ -677,7 +677,7 @@ function MobileMenu() {
                   >
                     {s[0].toUpperCase() + s.slice(1)}
                   </NavLink>
-                )
+                ),
               )}
             </nav>
           </div>
@@ -798,7 +798,7 @@ function SkillsSpotlight({ children }: { children: React.ReactNode }) {
     el.style.removeProperty("--mx");
     el.style.removeProperty("--my");
     el.querySelectorAll<HTMLElement>("[data-skill]").forEach(
-      (t) => (t.dataset.hot = "0")
+      (t) => (t.dataset.hot = "0"),
     );
   };
   return (
@@ -854,7 +854,7 @@ function ContactForm() {
         setMessage("");
       } else {
         const subject = encodeURIComponent(
-          `New portfolio message from ${name}`
+          `New portfolio message from ${name}`,
         );
         const body = encodeURIComponent(`From: ${name} <${email}>
 
@@ -1328,7 +1328,7 @@ export default function Portfolio() {
                   const [message, setMessage] = useState<string>("");
 
                   async function handleSubmit(
-                    e: React.FormEvent<HTMLFormElement>
+                    e: React.FormEvent<HTMLFormElement>,
                   ) {
                     e.preventDefault();
                     setMessage("");
@@ -1342,7 +1342,7 @@ export default function Portfolio() {
                     if (messageValue.length < 10) {
                       setStatus("error");
                       setMessage(
-                        "Please enter at least 10 characters in the message."
+                        "Please enter at least 10 characters in the message.",
                       );
                       return;
                     }
@@ -1355,7 +1355,7 @@ export default function Portfolio() {
                         {
                           method: "POST",
                           body: formData,
-                        }
+                        },
                       );
                       const data = await res.json();
 
@@ -1367,7 +1367,7 @@ export default function Portfolio() {
                         setStatus("error");
                         setMessage(
                           data.message ||
-                            "Something went wrong. Please try again."
+                            "Something went wrong. Please try again.",
                         );
                       }
                     } catch (err) {
