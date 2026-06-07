@@ -1,15 +1,7 @@
 "use client";
 
-import React from "react";
-
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-  useSpring,
-} from "framer-motion";
-
+import React, { useState, useEffect, useRef, useId } from "react";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
   Github,
   Linkedin,
@@ -26,12 +18,16 @@ import {
   Briefcase,
   Code2,
   Sparkles,
+  Award,
+  BookOpen,
+  ExternalLink,
+  X,
+  CheckCircle2,
 } from "lucide-react";
 
 // =====================================================
-// friendly portfolio
+// CSS Variables & Global Style Injections
 // =====================================================
-
 function ThemeVars() {
   return (
     <style>{`
@@ -68,20 +64,17 @@ html.dark { color-scheme: dark; }
 .bg-background\/60{ background-color: color-mix(in srgb, hsl(var(--background)) 60%, transparent); }
 .bg-background\/70{ background-color: color-mix(in srgb, hsl(var(--background)) 70%, transparent); }
 
-/* === Nav pulsing underline (only on hover/focus) === */
 .nav-pulse { position: relative; display:inline-block; }
 .nav-pulse::after{content:"";position:absolute;left:0;right:0;margin:0 auto;bottom:-6px;height:2px;width:0;background: currentColor;border-radius:2px;opacity:0;box-shadow:0 0 0 currentColor;transition: width .22s ease, opacity .2s ease, box-shadow .22s ease;}
 .nav-pulse:hover::after,.nav-pulse:focus-visible::after{width:100%;opacity:1;animation:navGlow 1.15s ease-in-out infinite;}
 @keyframes navGlow{0%{box-shadow:0 0 0 currentColor;}50%{box-shadow:0 0 10px currentColor;}100%{box-shadow:0 0 0 currentColor;}}
 
-/* === Social hover (boxed brand buttons) === */
 .social-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem .65rem;border:1px solid hsl(var(--border));border-radius:.6rem;transition:transform .2s ease, box-shadow .25s ease, background-color .25s ease, color .25s ease;line-height:1;position:relative;overflow:hidden;}
 .social-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .btn-gh:hover{color:hsl(var(--brand-gh));background-color:color-mix(in srgb, hsl(var(--brand-gh)) 12%, transparent);border-color:currentColor}
 .btn-li:hover{color:hsl(var(--brand-li));background-color:color-mix(in srgb, hsl(var(--brand-li)) 12%, transparent);border-color:currentColor}
 .btn-ig:hover{color:hsl(var(--brand-ig));background-color:color-mix(in srgb, hsl(var(--brand-ig)) 12%, transparent);border-color:currentColor}
 
-/* === Ephraim‑style FA hover: slide-up fill + 360° Y-rotation === */
 .fa-flip{isolation:isolate; perspective:600px}
 .fa-flip::before{content:"";position:absolute;inset:0;border-radius:inherit;transform:translateY(110%);transition:transform .35s ease;z-index:0;}
 .btn-gh.fa-flip:hover::before{background:hsl(var(--brand-gh));}
@@ -92,21 +85,6 @@ html.dark { color-scheme: dark; }
 .fa-flip:hover svg{transform:rotateY(360deg)}
 .fa-flip:hover{color:#fff}
 
-/* === Holographic photo card === */
-.holo-wrap { position: relative; border-radius: 1.5rem; overflow:hidden; }
-.holo-border { position:absolute; inset:-1px; border-radius:1.6rem; padding:2px; background:
-  conic-gradient(from 0deg, #8ec5ff66, #ffb3ec66, #ffe59a66, #b5ffcd66, #8ec5ff66);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
-.holo-noise { position:absolute; inset:0; background:
-  radial-gradient(180px 80px at 20% 10%, rgba(255,255,255,.25), transparent 60%),
-  radial-gradient(220px 100px at 80% 0%, rgba(255,255,255,.18), transparent 60%);
-  mix-blend-mode: overlay; pointer-events:none; }
-.holo-sheen { position:absolute; inset:0; background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,.45) 50%, transparent 60%); filter: blur(12px); opacity:0; pointer-events:none; }
-.holo-wrap:hover .holo-sheen { animation: sheen-scan 1.3s ease; }
-@keyframes sheen-scan { from{ transform: translateX(-120%); opacity:.7;} 60%{opacity:.3;} to{ transform: translateX(120%); opacity:0;} }
-
-/* === Fancy card hover for Experience/Education === */
 .fx-card{position:relative;transition:transform .2s ease, box-shadow .25s ease}
 .fx-card::after{content:"";position:absolute;inset:-1px;border-radius:1.1rem;background:conic-gradient(from 180deg, #7dd3fc33, #a7f3d033, #fde68a33, #7dd3fc33);opacity:0;pointer-events:none;filter:blur(6px)}
 .fx-card:hover{transform:translateY(-4px)}
@@ -119,20 +97,15 @@ html.dark { color-scheme: dark; }
 .expfx:hover::before{transform:translateX(0);opacity:1}
 .expfx:hover{transform:translateY(-6px) rotateY(6deg)}
 
-/* === Skills cursor spotlight (no canvas) === */
 .skills-spotlight { position:relative; }
 .skills-spotlight::before { content:""; position:absolute; inset:0; pointer-events:none; background: radial-gradient(180px 180px at var(--mx,50%) var(--my,50%), hsl(0 0% 100%/.12), transparent 60%); transition: background .08s linear; mix-blend-mode: overlay; }
 .skill-tile { transition: transform .18s ease, box-shadow .2s ease; will-change: transform; }
 .skill-tile[data-hot="1"] { transform: translateY(-4px) scale(1.03); box-shadow: 0 12px 30px rgba(0,0,0,.15); }
 
-/* === Utility icon button === */
-.btn-icon { height: 2.25rem; width: 2.25rem; padding:0; border: 1px solid hsl(var(--border)); border-radius: 0.5rem; display:inline-flex; align-items:center; justify-content:center; }
 .alert{border:1px solid transparent;border-radius:.6rem;padding:.6rem .8rem;font-size:.9rem}
 .alert-success{border-color:#16a34a1a;background:#16a34a10;color:#16a34a}
 .alert-error{border-color:#ef44441a;background:#ef444410;color:#ef4444}
 
-/* === Enhanced social buttons (magnetic glow + sheen) === */
-.social-btn{position:relative;overflow:hidden}
 .social-btn::before{content:"";position:absolute;inset:-1px;border-radius:inherit;transform:scale(.6);opacity:0;transition:transform .25s ease, opacity .25s ease;background:radial-gradient(120px 120px at 50% 50%, currentColor 0%, transparent 70%);filter:blur(10px)}
 .social-btn:hover::before{transform:scale(1);opacity:.25}
 .social-btn::after{content:"";position:absolute;left:10%;right:10%;bottom:-2px;height:2px;background:currentColor;opacity:0;transform:scaleX(.2);transition:opacity .25s ease, transform .25s ease}
@@ -143,10 +116,8 @@ html.dark { color-scheme: dark; }
 .social-btn:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background)),0 0 0 4px currentColor}
 .btn-ig:hover::before{background:radial-gradient(140px 140px at 50% 50%, #feda75 0%, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5 100%);opacity:.35}
 
-/* === Tilt card cursor effect for Experience/Education === */
 .tilt-card{will-change:transform;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .12s ease}
 .tilt-card:hover{transition:transform .06s ease}
-
 `}</style>
   );
 }
@@ -182,18 +153,18 @@ const Btn = ({
   );
 };
 
-// NavLink with pulsing underline
 const NavLink = ({ href, children, onClick }: any) => (
   <a
     href={href}
     onClick={(e) => {
       e.preventDefault();
       const target = document.querySelector(href as string);
-      if (target && "scrollIntoView" in target)
+      if (target && "scrollIntoView" in target) {
         (target as Element).scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
+      }
       onClick?.();
     }}
     className="relative rounded-sm text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
@@ -202,13 +173,13 @@ const NavLink = ({ href, children, onClick }: any) => (
   </a>
 );
 
-// Basic card primitives
-const Card = ({ className = "", children }: any) => (
+const Card = ({ className = "", children, ...props }: any) => (
   <div
     className={cx(
       "rounded-2xl border bg-background/60 backdrop-blur-sm",
       className,
     )}
+    {...props}
   >
     {children}
   </div>
@@ -263,12 +234,8 @@ const Badge = ({ children }: any) => (
 );
 
 // =====================================================
-// Data
+// Static Profile Data Definitions
 // =====================================================
-const FORMSPREE_ID = "";
-const FORMSPREE_URL = FORMSPREE_ID
-  ? `https://formspree.io/f/${FORMSPREE_ID}`
-  : "";
 const PROFILE = {
   name: "Ajaykumar DEVARADJOU",
   role: "Front-End & ServiceNow Developer",
@@ -276,9 +243,9 @@ const PROFILE = {
   location: "Ivry-sur-Seine, France",
   email: "ajaykumar123d@gmail.com",
   phone: "+33 6 61 84 70 83",
-  headshot: "ajaydevoteam.jpeg",
+  headshot: "ajaypersonal.jpg",
   bio: "Building on ServiceNow and modern web stacks, I create apps that are fast, accessible, and enjoyable to use.",
-  resumeUrl: "/cv/Ajaykumar_Devaradjou_CV_AK.pdf",
+  resumeUrl: "/cv/Ajaykumar Devaradjou CV.pdf",
   socials: {
     github: "https://github.com/AjayDevzX",
     linkedin: "https://www.linkedin.com/in/ajaykumar-devaradjou-72a441199/",
@@ -352,7 +319,7 @@ const EXPERIENCE = [
     role: "ServiceNow Technical Consultant",
     period: "2026 — Present",
     points: [
-      " Currently completing my end-of-studies internship as a ServiceNow Technical Consultant at Devoteam, working on ServiceNow configuration, customization, optimization, and application development to support business and ITSM processes.",
+      "Currently completing my end-of-studies internship as a ServiceNow Technical Consultant at Devoteam, working on ServiceNow configuration, customization, optimization, and application development to support business and ITSM processes.",
     ],
   },
   {
@@ -377,14 +344,106 @@ const EDUCATION = [
     period: "2023 — Present",
   },
   {
-    school: "Sri Manakula Vinayagar Enginnering College",
+    school: "Sri Manakula Vinayagar Engineering College",
     logo: "smveclogo.png",
     degree: "B.Tech in Information Technology",
     period: "2017 — 2021",
   },
 ];
 
-// ========================= Motion utils =========================
+const CERTIFICATIONS = [
+  {
+    title: "ServiceNow Certified Application Developer",
+    issuer: "ServiceNow",
+    date: "Apr 7, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage: "/servicenow/cadlogo.webp",
+    modalImage:
+      "/servicenow/ServiceNow_Certified_Application_Developer_CAD.jpg",
+    link: "https://nowlearning.servicenow.com/",
+  },
+  {
+    title: "ServiceNow Certified System Administrator (CSA)",
+    issuer: "ServiceNow",
+    date: "Feb 26, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage: "/servicenow/csalogo.png",
+    modalImage:
+      "/servicenow/ServiceNow_Certified_System_Administrator_(CSA).jpg",
+    link: "https://nowlearning.servicenow.com/",
+  },
+  {
+    title: "Micro-certification - Configuration Management Database (CMDB)",
+    issuer: "ServiceNow",
+    date: "June 4, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage:
+      "/servicenow/Credential Badge - Micro-Cert- Certified Configure the CMDB.png",
+    modalImage: "/servicenow/Micro-Certification-Configure_the-CMDB.jpg",
+    link: "",
+  },
+  {
+    title: "Javascript for the ServiceNow Professional 2026",
+    issuer: "Udemy",
+    date: "March 3, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage: "/servicenow/udemy_logo.webp",
+    modalImage: "/servicenow/Js_servicenow certification.jpg",
+    link: "",
+  },
+  {
+    title: "Micro-certification - Agentic AI Executive",
+    issuer: "ServiceNow",
+    date: "Jan 21, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage: "/servicenow/Micro-Certification - Agentic AI Executive.png",
+    modalImage: "/servicenow/Micro-Certification-Agentic AI Executive.jpg",
+    link: "",
+  },
+  {
+    title: "Micro-certification - Now Assist Executive",
+    issuer: "ServiceNow",
+    date: "Jan 21, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage:
+      "/servicenow/Credential Badge - Micro-Cert- Now Assist Executive.png",
+    modalImage: "/servicenow/Now Assist Executive Micro Certification.jpg",
+    link: "",
+  },
+  {
+    title: "Micro-certification - Welcome to ServiceNow",
+    issuer: "ServiceNow",
+    date: "Jan 15, 2026",
+    status: "Current",
+    type: "Certification",
+    badgeImage:
+      "/servicenow/Credential Badge - Micro-Cert- Certified Welcome to ServiceNow.png",
+    modalImage: "/servicenow/Micro-Certification-Welcome to Servicenow.jpg",
+    link: "",
+  },
+];
+
+const PUBLICATIONS = [
+  {
+    title:
+      "Digital Art Gallery on Phones for Users with Reduced Mobility by Using Augmented Virtuality",
+    publisher: "Springer / ICICT 2025 — London",
+    date: "2025",
+    description:
+      "An accessibility-driven research framework introducing a mobile-based immersive Augmented Virtuality gallery system. The project builds an inclusive, phone-optimised virtual interface allowing remote exploration of cultural exhibitions for individuals with reduced mobility, while offering scalable structural tools for digital museum asset lifecycle management.",
+    link: "https://link.springer.com/chapter/10.1007/978-981-96-6938-7_47",
+    image: "/publication/publi-image.png", // save the SVG illustration here
+    certificate: "/publication/publication-certificate.jpeg", // rename your uploaded JPEG to this
+  },
+];
+
+// ========================= Animation Constants =========================
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: (i = 0) => ({
@@ -398,7 +457,34 @@ const stagger = {
   show: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
 };
 
-// ========================= Sections & Theme =========================
+// ========================= Theme State Hook =========================
+function useThemeToggle() {
+  const [dark, setDark] = useState<boolean>(true);
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem("theme");
+    if (stored) {
+      setDark(stored === "dark");
+    } else {
+      setDark(
+        window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mounted && typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark", dark);
+      localStorage.setItem("theme", dark ? "dark" : "light");
+    }
+  }, [dark, mounted]);
+
+  return { dark, setDark, mounted };
+}
+
+// ========================= Base Layout Wrappers =========================
 const Section = ({ id, title, icon: Icon, children }: any) => (
   <section id={id} className="scroll-mt-24 py-16" aria-label={title}>
     <div className="container mx-auto max-w-6xl px-4">
@@ -415,36 +501,24 @@ const Section = ({ id, title, icon: Icon, children }: any) => (
   </section>
 );
 
-function useThemeToggle() {
-  const [dark, setDark] = React.useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    const stored = localStorage.getItem("theme");
-    if (stored) return stored === "dark";
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true;
-  });
-  React.useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.classList.toggle("dark", dark);
-      localStorage.setItem("theme", dark ? "dark" : "light");
-    }
-  }, [dark]);
-  return { dark, setDark };
-}
-
-// ========================= Animated Role (UPDATED, FE icon removed) =========================
 const AnimatedRole = ({ roles }: { roles: string[] }) => {
-  const [index, setIndex] = React.useState(0);
-  const [sub, setSub] = React.useState(0);
-  const [dir, setDir] = React.useState<"typing" | "deleting" | "pause">(
-    "typing",
-  );
+  const [index, setIndex] = useState(0);
+  const [sub, setSub] = useState(0);
+  const [dir, setDir] = useState<"typing" | "deleting" | "pause">("typing");
+  const maskId = useId();
+
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const TYPE_MS = 70,
     DELETE_MS = 45,
     PAUSE_MS = 900,
     GAP_MS = 250;
   const TARGET = (roles[index] ?? "").trim();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let t: any;
     if (dir === "typing") {
       if (sub < TARGET.length)
@@ -452,11 +526,12 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
       else t = setTimeout(() => setDir("pause"), PAUSE_MS);
     } else if (dir === "deleting") {
       if (sub > 0) t = setTimeout(() => setSub((s) => s - 1), DELETE_MS);
-      else
+      else {
         t = setTimeout(() => {
           setIndex((n) => (n + 1) % roles.length);
           setDir("typing");
         }, GAP_MS);
+      }
     } else {
       t = setTimeout(() => setDir("deleting"), 600);
     }
@@ -464,68 +539,61 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
   }, [dir, sub, roles.length, TARGET.length, index]);
 
   const display = TARGET.slice(0, sub);
-
   const snGreen = "#62D84F";
   const snTextHex = "#032D42";
   const isSN = /servicenow/i.test(TARGET);
   const isFE = /front[- ]?end/i.test(TARGET);
-  const darkMode =
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark");
+
+  const darkMode = isClient
+    ? document.documentElement.classList.contains("dark")
+    : true;
+  const roleColor =
+    isClient && (isSN || isFE) ? (darkMode ? snGreen : snTextHex) : undefined;
 
   const nowPos = isSN ? TARGET.toLowerCase().indexOf("now") : -1;
   const oIndex = nowPos >= 0 ? nowPos + 1 : -1;
   const devPos = isSN ? TARGET.toLowerCase().indexOf("developer") : -1;
   const devOIndex = devPos >= 0 ? devPos + "developer".indexOf("o") : -1;
-
   const lastSpace = TARGET.lastIndexOf(" ");
   const lastWordStart = lastSpace >= 0 ? lastSpace + 1 : -1;
 
-  const roleColor = isSN || isFE ? (darkMode ? snGreen : snTextHex) : undefined;
-
-  const ServiceNowO = ({ darkMode }: { darkMode: boolean }) => {
-    const maskId = React.useId();
-    return (
-      <span
-        aria-label="ServiceNow O"
-        className="inline-block align-baseline"
-        style={{
-          width: "0.72em",
-          height: "0.80em",
-          position: "relative",
-          top: "0.13em",
-        }}
+  const ServiceNowO = ({ isDark }: { isDark: boolean }) => (
+    <span
+      aria-label="ServiceNow O"
+      className="inline-block align-baseline"
+      style={{
+        width: "0.72em",
+        height: "0.80em",
+        position: "relative",
+        top: "0.13em",
+      }}
+    >
+      <svg
+        viewBox="0 0 100 100"
+        width="100%"
+        height="100%"
+        role="img"
+        focusable="false"
       >
-        <svg
-          viewBox="0 0 100 100"
-          width="100%"
-          height="100%"
-          role="img"
-          focusable="false"
-        >
-          <defs>
-            <mask id={maskId}>
-              <rect width="100" height="100" fill="#fff" />
-              <circle cx="50" cy="50" r="28" fill="#000" />
-              <path
-                d="M26,73 C38,92 62,92 74,73 L74,100 L26,100 Z"
-                fill="#000"
-              />
-            </mask>
-          </defs>
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill={darkMode ? snTextHex : snGreen}
-            stroke={darkMode ? snGreen : "none"}
-            strokeWidth={darkMode ? 8 : 0}
-            mask={`url(#${maskId})`}
-          />
-        </svg>
-      </span>
-    );
-  };
+        <defs>
+          <mask id={maskId}>
+            <rect width="100" height="100" fill="#fff" />
+            <circle cx="50" cy="50" r="28" fill="#000" />
+            <path d="M26,73 C38,92 62,92 74,73 L74,100 L26,100 Z" fill="#000" />
+          </mask>
+        </defs>
+        <circle
+          cx="50"
+          cy="50"
+          r="45"
+          fill={isDark ? snTextHex : snGreen}
+          stroke={isDark ? snGreen : "none"}
+          strokeWidth={isDark ? 8 : 0}
+          mask={`url(#${maskId})`}
+        />
+      </svg>
+    </span>
+  );
 
   return (
     <div className="mt-2">
@@ -538,19 +606,18 @@ const AnimatedRole = ({ roles }: { roles: string[] }) => {
       >
         {display.split("").map((ch, i) => {
           if (isSN && (i === oIndex || i === devOIndex)) {
-            return <ServiceNowO key={`sn-o-${i}`} darkMode={!!darkMode} />;
+            return <ServiceNowO key={`sn-o-${i}`} isDark={darkMode} />;
           }
 
           const styleObj: React.CSSProperties = {};
           if (roleColor) styleObj.color = roleColor;
           if (i === lastWordStart) styleObj.marginInlineStart = "0.35ch";
 
-          // Optional: keep outlined "F" styling without the symbol
           if (isFE && i === 0 && darkMode) {
             Object.assign(styleObj, {
               color: snTextHex,
               WebkitTextStroke: `1.3px ${snGreen}`,
-              textStroke: `1.3px ${snGreen}` as any,
+              textStroke: `1.3px ${snGreen}`,
             });
           } else if (isFE && i === 0) {
             Object.assign(styleObj, { color: snGreen });
@@ -591,7 +658,6 @@ function NameWithGradient({ name }: { name: string }) {
   );
 }
 
-// ========================= Image block =========================
 export function HeadshotInteractive({
   src,
   alt,
@@ -617,7 +683,6 @@ export function HeadshotInteractive({
           opacity: 0.8,
         }}
       />
-
       <div className="relative z-10 h-full w-full rounded-3xl overflow-hidden shadow-2xl">
         <img
           src={src}
@@ -626,7 +691,6 @@ export function HeadshotInteractive({
           className="block h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
         />
       </div>
-
       <div
         className="absolute inset-0 z-0 rounded-[3rem]"
         style={{
@@ -637,9 +701,13 @@ export function HeadshotInteractive({
   );
 }
 
-// ========================= Mobile menu =========================
 function MobileMenu() {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "auto";
+  }, [open]);
+
   return (
     <>
       <Btn
@@ -651,13 +719,13 @@ function MobileMenu() {
         <Menu className="size-5" />
       </Btn>
       {open && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-[999] md:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-0 h-full w-72 border-l bg-background p-6 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
+          <div className="absolute right-0 top-0 h-full w-72 bg-background/80 backdrop-blur-xl border-l shadow-2xl">
+            <div className="mb-6 flex items-center justify-between p-6">
               <span className="font-semibold">Menu</span>
               <button
                 className="btn-icon"
@@ -667,18 +735,21 @@ function MobileMenu() {
                 ✕
               </button>
             </div>
-            <nav className="grid gap-4">
-              {["about", "projects", "experience", "skills", "contact"].map(
-                (s) => (
-                  <NavLink
-                    key={s}
-                    href={`#${s}`}
-                    onClick={() => setOpen(false)}
-                  >
-                    {s[0].toUpperCase() + s.slice(1)}
-                  </NavLink>
-                ),
-              )}
+            <nav className="grid gap-4 px-6">
+              {[
+                "about",
+                "projects",
+                "experience",
+                "skills",
+                "education",
+                "certifications",
+                "publications",
+                "contact",
+              ].map((s) => (
+                <NavLink key={s} href={`#${s}`} onClick={() => setOpen(false)}>
+                  {s[0].toUpperCase() + s.slice(1)}
+                </NavLink>
+              ))}
             </nav>
           </div>
         </div>
@@ -687,9 +758,8 @@ function MobileMenu() {
   );
 }
 
-// ========================= Tilt wrapper =========================
 function TiltCard({ children }: { children: React.ReactNode }) {
-  const ref = React.useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const onMove = (e: React.MouseEvent) => {
     const el = ref.current!;
     const r = el.getBoundingClientRect();
@@ -717,7 +787,6 @@ function TiltCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ========================= Experience / Education cards =========================
 const ExperienceCard = ({ company, logo, role, period, points }: any) => (
   <motion.div variants={fadeUp}>
     <TiltCard>
@@ -726,7 +795,7 @@ const ExperienceCard = ({ company, logo, role, period, points }: any) => (
           <img
             src={logo}
             alt={`${company} logo`}
-            className="h-20 w-20 rounded-lg object-contain shadow-sm md:h-30 md:w-2000"
+            className="h-20 w-20 rounded-lg object-contain shadow-sm md:h-20 md:w-20"
             loading="lazy"
             decoding="async"
           />
@@ -758,7 +827,7 @@ const EducationCard = ({ school, logo, degree, period }: any) => (
           <img
             src={logo}
             alt={`${school} logo`}
-            className="h-25 w-25 rounded object-contain"
+            className="h-16 w-16 rounded object-contain"
             loading="lazy"
             decoding="async"
           />
@@ -774,9 +843,8 @@ const EducationCard = ({ school, logo, degree, period }: any) => (
   </motion.div>
 );
 
-// ========================= Skills spotlight (cursor-follow) =========================
 function SkillsSpotlight({ children }: { children: React.ReactNode }) {
-  const ref = React.useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const onMove = (e: React.MouseEvent) => {
     const el = ref.current!;
     const rect = el.getBoundingClientRect();
@@ -813,120 +881,109 @@ function SkillsSpotlight({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ========================= Contact form =========================
-function ContactForm() {
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [message, setMessage] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [status, setStatus] = React.useState<{
-    ok: boolean;
-    msg: string;
-  } | null>(null);
+function Web3ContactForm() {
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
+  const [message, setMessage] = useState<string>("");
 
-  const isValidEmail = (v: string) => /.+@.+\..+/.test(v);
-
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus(null);
-    if (!name.trim() || !isValidEmail(email) || !message.trim()) {
-      setStatus({
-        ok: false,
-        msg: "Please fill your name, a valid email, and a message.",
-      });
+    setMessage("");
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const messageValue = (formData.get("message") as string)?.trim() || "";
+
+    if (messageValue.length < 10) {
+      setStatus("error");
+      setMessage("Please enter at least 10 characters in the message.");
       return;
     }
-    setLoading(true);
-    try {
-      if (FORMSPREE_URL) {
-        const res = await fetch(FORMSPREE_URL, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name, email, message }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        setStatus({ ok: true, msg: "Thanks! Your message was sent." });
-        setName("");
-        setEmail("");
-        setMessage("");
-      } else {
-        const subject = encodeURIComponent(
-          `New portfolio message from ${name}`,
-        );
-        const body = encodeURIComponent(`From: ${name} <${email}>
 
-${message}`);
-        window.location.href = `mailto:${PROFILE.email}?subject=${subject}&body=${body}`;
-      }
-    } catch (err: any) {
-      setStatus({
-        ok: false,
-        msg: "Failed to send. Try again or email me directly.",
+    setStatus("sending");
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
       });
-    } finally {
-      setLoading(false);
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus("success");
+        setMessage("Thanks! Your message has been sent.");
+        form.reset();
+      } else {
+        setStatus("error");
+        setMessage(data.message || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      setStatus("error");
+      setMessage("Network error. Please try again.");
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3" noValidate>
-      <Input
-        name="name"
-        placeholder="Your name"
-        value={name}
-        onChange={(e: any) => setName(e.target.value)}
-        required
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <input
+        type="hidden"
+        name="access_key"
+        value="0c9ad70d-15a4-4eaa-8d4a-df6a10277c13"
       />
-      <Input
-        name="email"
-        type="email"
-        placeholder="Your email"
-        value={email}
-        onChange={(e: any) => setEmail(e.target.value)}
-        required
+      <input type="hidden" name="subject" value="New message from portfolio" />
+      <input
+        type="checkbox"
+        name="botcheck"
+        className="hidden"
+        tabIndex={-1}
+        autoComplete="off"
       />
+
+      <Input name="name" placeholder="Your name" required />
+      <Input type="email" name="email" placeholder="Your email" required />
       <Textarea
-        name="message"
         rows={5}
+        name="message"
         placeholder="Tell me about your project…"
-        value={message}
-        onChange={(e: any) => setMessage(e.target.value)}
         required
       />
-      <Btn className="w-full" as={undefined} type="submit" disabled={loading}>
-        {loading ? "Sending…" : "Send message"}
+
+      <Btn type="submit" className="w-full" disabled={status === "sending"}>
+        {status === "sending" ? "Sending…" : "Send message"}
       </Btn>
-      {status && (
-        <div
-          role="status"
-          className={cx("alert", status.ok ? "alert-success" : "alert-error")}
-        >
-          {status.msg}
-        </div>
-      )}
-      {!FORMSPREE_URL && <p className="text-xs text-muted-foreground"></p>}
+
+      <p
+        className={`text-xs ${status === "error" ? "text-red-500" : "text-muted-foreground"}`}
+      >
+        {message}
+      </p>
     </form>
   );
 }
 
-// ========================= Page =========================
+// ========================= Main Page Assembly =========================
 export default function Portfolio() {
-  const { dark, setDark } = useThemeToggle();
+  const { dark, setDark, mounted } = useThemeToggle();
   const reduce = useReducedMotion();
+  const [activeCert, setActiveCert] = useState<
+    (typeof CERTIFICATIONS)[0] | null
+  >(null);
+  const [certOpen, setCertOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div
+      className="min-h-screen bg-background text-foreground"
+      suppressHydrationWarning
+    >
       <ThemeVars />
 
-      {/* Background glows */}
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-40 [mask-image:radial-gradient(60%_40%_at_50%_0%,black,transparent)]">
+      {/* Background elements */}
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-40">
         <div className="absolute inset-0 bg-[radial-gradient(1000px_500px_at_50%_-10%,oklch(0.75_0.2_280/.25),transparent),radial-gradient(800px_400px_at_10%_10%,oklch(0.75_0.2_200/.25),transparent),radial-gradient(800px_400px_at_90%_20%,oklch(0.75_0.2_20/.25),transparent)]" />
       </div>
 
-      {/* Header */}
+      {/* Main Navbar */}
       <header className="sticky top-0 z-40 w-full bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
@@ -934,11 +991,14 @@ export default function Portfolio() {
               <NameWithGradient name={PROFILE.name} />
             </span>
           </div>
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-5 lg:flex">
             <NavLink href="#about">About</NavLink>
             <NavLink href="#projects">Projects</NavLink>
             <NavLink href="#experience">Experience</NavLink>
             <NavLink href="#skills">Skills</NavLink>
+            <NavLink href="#education">Education</NavLink>
+            <NavLink href="#certifications">Certifications</NavLink>
+            <NavLink href="#publications">Publications</NavLink>
             <NavLink href="#contact">Contact</NavLink>
           </nav>
           <div className="flex items-center gap-2">
@@ -948,14 +1008,18 @@ export default function Portfolio() {
               className="icon"
               onClick={() => setDark(!dark)}
             >
-              {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+              {mounted && dark ? (
+                <Sun className="size-5" />
+              ) : (
+                <Moon className="size-5" />
+              )}
             </Btn>
             <MobileMenu />
           </div>
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero Presentation */}
       <section className="relative overflow-hidden">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="grid items-center gap-8 py-16 md:grid-cols-2">
@@ -969,14 +1033,16 @@ export default function Portfolio() {
               >
                 <NameWithGradient name={PROFILE.name} />
               </motion.h1>
+
               <AnimatedRole roles={PROFILE.roles} />
+
               <motion.p
                 variants={fadeUp}
                 custom={1}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.4 }}
-                className="mt-6 leading-relaxed"
+                className="mt-6 leading-relaxed text-muted-foreground"
               >
                 {PROFILE.bio}
               </motion.p>
@@ -1021,7 +1087,7 @@ export default function Portfolio() {
               </motion.div>
 
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 mr-2">
                   <MapPin className="size-4" /> {PROFILE.location}
                 </span>
                 <a
@@ -1060,7 +1126,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* About */}
+      {/* About Section */}
       <Section id="about" title="About" icon={Sparkles}>
         <motion.div
           variants={stagger}
@@ -1076,37 +1142,32 @@ export default function Portfolio() {
               </CardHeader>
               <CardContent className="space-y-3 text-muted-foreground">
                 <p>
-                  I’m a Master’s student in Software Engineering & Digital
-                  Transformation at ESIGELEC, France, seeking a 4–6-month
-                  end-of-studies internship, available immediately. I have 2
-                  years of experience as a ServiceNow Developer at Tata
-                  Consultancy Services, where I worked on ITSM modules, CMDB
-                  management, and process optimization aligned with ITIL®
-                  practices.
-                </p>{" "}
+                  Currently working as a ServiceNow Technical Consultant Intern
+                  at Devoteam and certified in CSA & CAD, I am pursuing a
+                  Master’s degree in Software Engineering & Digital
+                  Transformation at ESIGELEC. Previously, I gained 2 years of
+                  experience at Tata Consultancy Services as a ServiceNow
+                  Consultant, working on ITSM, CMDB, and process optimization
+                  projects for international clients.
+                </p>
                 <p>
-                  I specialize in ServiceNow development and administration,
-                  focusing on automation, data accuracy, and user-friendly
-                  workflows. My experience also includes working in Agile/Scrum
-                  environments and collaborating with multidisciplinary teams to
-                  improve service efficiency.
-                </p>{" "}
-                <p>
-                  In addition, I’m passionate about front-end development,
-                  building responsive and accessible interfaces with HTML, CSS,
-                  JavaScript, and React. I enjoy combining ServiceNow expertise
-                  with modern web technologies to deliver seamless,
-                  high-performance digital experiences.
+                  As part of my role at Devoteam, I also participated in
+                  shadowing projects for Hermès, gaining exposure to complex
+                  enterprise environments and ServiceNow best practices.
+                  Passionate about digital transformation, I continuously
+                  strengthen my technical and functional expertise to deliver
+                  efficient, business-oriented solutions.
                 </p>
               </CardContent>
             </Card>
           </motion.div>
+
           <motion.div variants={fadeUp}>
             <Card>
               <CardHeader>
                 <CardTitle>Quick facts</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-3 text-sm">
+              <CardContent className="grid gap-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Phone className="size-4" /> {PROFILE.phone}
                 </div>
@@ -1122,7 +1183,7 @@ export default function Portfolio() {
         </motion.div>
       </Section>
 
-      {/* Projects */}
+      {/* Featured Projects Section */}
       <Section id="projects" title="Featured Projects" icon={Code2}>
         <motion.div
           variants={stagger}
@@ -1139,7 +1200,7 @@ export default function Portfolio() {
               whileHover={{ y: -6, rotate: 0.4 }}
               transition={{ type: "spring", stiffness: 250, damping: 18 }}
             >
-              <Card className="group overflow-hidden shadow-sm transition">
+              <Card className="group overflow-hidden shadow-sm transition h-full flex flex-col">
                 <div className="relative">
                   <img
                     src={p.image}
@@ -1149,31 +1210,28 @@ export default function Portfolio() {
                     decoding="async"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 transition group-hover:opacity-100" />
-                  <span className="pointer-events-none absolute -inset-x-10 -top-10 h-24 rotate-12 bg-white/10 opacity-0 blur-md transition group-hover:opacity-100" />
                 </div>
                 <CardHeader>
                   <CardTitle className="flex items-start justify-between gap-3">
                     <span>{p.title}</span>
-                    {p.repo ? (
-                      <div className="flex shrink-0 gap-2">
-                        <a
-                          href={p.repo}
-                          aria-label="Source code"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="social-btn btn-gh fa-flip"
-                        >
-                          <Github className="size-4" />
-                        </a>
-                      </div>
-                    ) : null}
+                    {p.repo && (
+                      <a
+                        href={p.repo}
+                        aria-label="Source code"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-btn btn-gh fa-flip shrink-0"
+                      >
+                        <Github className="size-4" />
+                      </a>
+                    )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 flex-grow flex flex-col justify-between">
                   <p className="text-sm text-muted-foreground">
                     {p.description}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     {p.tags.map((t) => (
                       <Badge key={t}>{t}</Badge>
                     ))}
@@ -1185,7 +1243,7 @@ export default function Portfolio() {
         </motion.div>
       </Section>
 
-      {/* Experience */}
+      {/* Professional Experience Section */}
       <Section id="experience" title="Experience" icon={Briefcase}>
         <motion.div
           variants={stagger}
@@ -1200,7 +1258,7 @@ export default function Portfolio() {
         </motion.div>
       </Section>
 
-      {/* Education */}
+      {/* Academic Education Section */}
       <Section id="education" title="Education" icon={GraduationCap}>
         <motion.div
           variants={stagger}
@@ -1215,7 +1273,285 @@ export default function Portfolio() {
         </motion.div>
       </Section>
 
-      {/* Skills */}
+      {/* Certifications Section */}
+      <Section id="certifications" title="Certifications" icon={Award}>
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid gap-6 sm:grid-cols-2"
+        >
+          {CERTIFICATIONS.map((cert, i) => (
+            <motion.div key={cert.title} variants={fadeUp} custom={i}>
+              <TiltCard>
+                <Card
+                  className="fx-card transition hover:shadow-md h-full cursor-pointer overflow-hidden group/cert bg-white text-black border border-neutral-200"
+                  onClick={() => cert.modalImage && setActiveCert(cert)}
+                >
+                  <div className="p-6 flex items-center justify-between gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                        {cert.type}
+                      </div>
+                      <h4 className="font-bold text-lg leading-snug text-neutral-900 group-hover/cert:text-emerald-600 transition-colors line-clamp-1">
+                        {cert.title}
+                      </h4>
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-600">
+                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        {cert.status}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-neutral-500 pt-2 font-mono">
+                        <CheckCircle2 className="size-3.5 text-neutral-400 shrink-0" />
+                        Issued: {cert.date}
+                      </div>
+                    </div>
+
+                    {cert.badgeImage ? (
+                      <div className="relative h-20 w-16 bg-neutral-50 rounded-lg p-1 border border-neutral-100 flex items-center justify-center shrink-0 shadow-sm group-hover/cert:scale-105 transition-transform duration-300">
+                        <img
+                          src={cert.badgeImage}
+                          alt={`${cert.title} Badge`}
+                          className="h-full w-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-20 w-16 rounded-lg bg-neutral-100 text-neutral-400 flex items-center justify-center shrink-0">
+                        <Award className="size-8" />
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </TiltCard>
+            </motion.div>
+          ))}
+        </motion.div>
+      </Section>
+
+      {/* Raw JPEG Image Lightbox Overlay System */}
+      <AnimatePresence>
+        {activeCert && activeCert.modalImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Smooth background blur veil */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              onClick={() => setActiveCert(null)}
+            />
+
+            {/* Lightbox Panel Frame */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.93, y: 10 }}
+              transition={{ type: "spring", duration: 0.35 }}
+              className="relative max-w-4xl max-h-[90vh] w-auto overflow-hidden rounded-xl bg-neutral-900 shadow-2xl z-10 border border-white/10 flex items-center justify-center"
+            >
+              {/* Floating Action Close Button */}
+              <div className="absolute right-4 top-4 z-20">
+                <button
+                  onClick={() => setActiveCert(null)}
+                  className="flex size-10 items-center justify-center rounded-full bg-black/50 text-white border border-white/20 backdrop-blur hover:bg-black/80 active:scale-95 transition duration-200"
+                  aria-label="Close image popup"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+
+              {/* Lightbox graphic asset container */}
+              <img
+                src={activeCert.modalImage}
+                alt={`${activeCert.title} Official JPEG Credential Record`}
+                className="max-w-full max-h-[85vh] w-auto h-auto object-contain block select-none rounded-xl"
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Publications Papers Section (Enhanced) */}
+
+      <Section id="publications" title="Publications" icon={BookOpen}>
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          className="grid gap-6"
+        >
+          {PUBLICATIONS.map((pub, i) => (
+            <motion.div
+              key={pub.title}
+              variants={fadeUp}
+              custom={i}
+              whileHover={{ y: -8, scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            >
+              <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-2xl group border border-border/60">
+                {/* Glow background on hover */}
+                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/10 via-indigo-400/10 to-amber-400/10 blur-2xl" />
+                </div>
+
+                <div className="flex flex-col md:flex-row relative z-10">
+                  {/* LEFT IMAGE */}
+                  {pub.image && (
+                    <div className="relative md:w-72 shrink-0 overflow-hidden">
+                      <img
+                        src={pub.image}
+                        alt="Publication illustration"
+                        className="h-52 w-full object-cover md:h-full transition-transform duration-500 group-hover:scale-110"
+                      />
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
+                    </div>
+                  )}
+
+                  {/* RIGHT CONTENT */}
+                  <div className="flex flex-col justify-between gap-4 p-6 flex-1">
+                    <div className="space-y-3">
+                      {/* BADGES */}
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-transform hover:scale-105">
+                          {pub.date}
+                        </span>
+
+                        <span className="inline-flex items-center rounded-md bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 transition-transform hover:scale-105">
+                          Springer · ICICT
+                        </span>
+
+                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground transition-transform hover:scale-105">
+                          Conference Paper
+                        </span>
+                      </div>
+
+                      {/* TITLE */}
+                      <h4 className="text-lg font-semibold leading-snug transition-colors group-hover:text-emerald-500">
+                        {pub.title}
+                      </h4>
+
+                      {/* PUBLISHER */}
+                      <div className="text-sm text-muted-foreground font-medium">
+                        {pub.publisher}
+                      </div>
+
+                      {/* DESCRIPTION */}
+                      <p className="text-sm text-muted-foreground leading-relaxed transition-opacity group-hover:opacity-90">
+                        {pub.description}
+                      </p>
+                    </div>
+
+                    {/* ACTION BUTTONS */}
+                    <div className="flex flex-wrap gap-3 pt-2 border-t border-border">
+                      {pub.link && pub.link !== "#" && (
+                        <motion.div
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.97 }}
+                        >
+                          <Btn
+                            as="a"
+                            href={pub.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="outline"
+                          >
+                            Read Paper <ExternalLink className="ml-2 size-4" />
+                          </Btn>
+                        </motion.div>
+                      )}
+
+                      {pub.certificate && (
+                        <motion.div
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.97 }}
+                        >
+                          <Btn
+                            variant="outline"
+                            className="border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                            onClick={() => setCertOpen(true)}
+                          >
+                            <Award className="mr-2 size-4" />
+                            View Certificate
+                          </Btn>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* CERTIFICATE STRIP */}
+                {pub.certificate && (
+                  <button
+                    onClick={() => setCertOpen(true)}
+                    className="w-full flex items-center gap-4 px-6 py-3 border-t border-border bg-muted/30 hover:bg-muted/60 transition group"
+                  >
+                    <div className="h-10 w-14 shrink-0 rounded border border-amber-400/40 bg-amber-50 dark:bg-amber-950/30 overflow-hidden">
+                      <img
+                        src={pub.certificate}
+                        alt="Certificate thumbnail"
+                        className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate transition group-hover:text-emerald-500">
+                        ICICT 2025 participation certificate
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        10th International Conference on ICT · London, Feb 2025
+                      </p>
+                    </div>
+
+                    <ExternalLink className="size-4 text-muted-foreground group-hover:text-foreground transition shrink-0" />
+                  </button>
+                )}
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+      </Section>
+
+      {/* Certificate Lightbox */}
+      <AnimatePresence>
+        {certOpen && PUBLICATIONS[0].certificate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              onClick={() => setCertOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.93, y: 10 }}
+              transition={{ type: "spring", duration: 0.35 }}
+              className="relative max-w-4xl max-h-[90vh] w-auto overflow-hidden rounded-xl bg-neutral-900 shadow-2xl z-10 border border-white/10"
+            >
+              <button
+                onClick={() => setCertOpen(false)}
+                className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-black/50 text-white border border-white/20 backdrop-blur hover:bg-black/80 active:scale-95 transition"
+                aria-label="Close certificate"
+              >
+                <X className="size-5" />
+              </button>
+
+              <img
+                src={PUBLICATIONS[0].certificate}
+                alt="ICICT 2025 Certificate"
+                className="max-w-full max-h-[85vh] w-auto h-auto object-contain block select-none rounded-xl"
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Tech Skills Grid */}
       <Section id="skills" title="Skills" icon={Sparkles}>
         <SkillsSpotlight>
           <motion.div
@@ -1223,7 +1559,7 @@ export default function Portfolio() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
+            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7"
           >
             {SKILLS.map((s, idx) => (
               <motion.div
@@ -1241,11 +1577,11 @@ export default function Portfolio() {
                   <img
                     src={s.icon}
                     alt={`${s.name} logo`}
-                    className="mb-3 h-32 w-32 object-contain"
+                    className="mb-3 h-12 w-12 object-contain"
                     loading="lazy"
                     decoding="async"
                   />
-                  <div className="text-sm font-medium opacity-90">{s.name}</div>
+                  <div className="text-xs font-medium opacity-90">{s.name}</div>
                 </div>
               </motion.div>
             ))}
@@ -1253,7 +1589,7 @@ export default function Portfolio() {
         </SkillsSpotlight>
       </Section>
 
-      {/* Contact */}
+      {/* Contact Section */}
       <Section id="contact" title="Contact" icon={Mail}>
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -1276,10 +1612,10 @@ export default function Portfolio() {
               </div>
               <p className="text-sm text-muted-foreground">
                 For the fastest response, email me directly or connect on
-                LinkedIn. I am open to End-of-studies internship , and
+                LinkedIn. I am open to End-of-studies internships and
                 collaborative builds.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 pt-2">
                 <a
                   className="social-btn btn-li fa-flip"
                   href={PROFILE.socials.linkedin}
@@ -1315,130 +1651,14 @@ export default function Portfolio() {
             <CardHeader>
               <CardTitle>Get in Touch</CardTitle>
             </CardHeader>
-
-            <CardContent className="space-y-3">
-              {(() => {
-                const React = require("react");
-                const { useState } = React as typeof import("react");
-
-                const Form = () => {
-                  const [status, setStatus] = useState<
-                    "idle" | "sending" | "success" | "error"
-                  >("idle");
-                  const [message, setMessage] = useState<string>("");
-
-                  async function handleSubmit(
-                    e: React.FormEvent<HTMLFormElement>,
-                  ) {
-                    e.preventDefault();
-                    setMessage("");
-
-                    const form = e.currentTarget;
-                    const formData = new FormData(form);
-
-                    // ✅ Check that message has at least 10 characters
-                    const messageValue =
-                      (formData.get("message") as string)?.trim() || "";
-                    if (messageValue.length < 10) {
-                      setStatus("error");
-                      setMessage(
-                        "Please enter at least 10 characters in the message.",
-                      );
-                      return;
-                    }
-
-                    setStatus("sending");
-
-                    try {
-                      const res = await fetch(
-                        "https://api.web3forms.com/submit",
-                        {
-                          method: "POST",
-                          body: formData,
-                        },
-                      );
-                      const data = await res.json();
-
-                      if (data.success) {
-                        setStatus("success");
-                        setMessage("Thanks! Your message has been sent.");
-                        form.reset();
-                      } else {
-                        setStatus("error");
-                        setMessage(
-                          data.message ||
-                            "Something went wrong. Please try again.",
-                        );
-                      }
-                    } catch (err) {
-                      setStatus("error");
-                      setMessage("Network error. Please try again.");
-                    }
-                  }
-
-                  return (
-                    <form onSubmit={handleSubmit} className="space-y-3">
-                      <input
-                        type="hidden"
-                        name="access_key"
-                        value="0c9ad70d-15a4-4eaa-8d4a-df6a10277c13"
-                      />
-                      <input
-                        type="hidden"
-                        name="subject"
-                        value="New message from portfolio"
-                      />
-                      <input
-                        type="checkbox"
-                        name="botcheck"
-                        className="hidden"
-                        tabIndex={-1}
-                        autoComplete="off"
-                      />
-
-                      <Input name="name" placeholder="Your name" required />
-                      <Input
-                        type="email"
-                        name="email"
-                        placeholder="Your email"
-                        required
-                      />
-                      <Textarea
-                        rows={5}
-                        name="message"
-                        placeholder="Tell me about your project…"
-                        required
-                      />
-
-                      <Btn
-                        type="submit"
-                        className="w-full"
-                        disabled={status === "sending"}
-                      >
-                        {status === "sending" ? "Sending…" : "Send message"}
-                      </Btn>
-
-                      <p
-                        className={`text-xs ${
-                          status === "error"
-                            ? "text-red-500"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {message}
-                      </p>
-                    </form>
-                  );
-                };
-
-                return <Form />;
-              })()}
+            <CardContent>
+              <Web3ContactForm />
             </CardContent>
           </Card>
         </div>
       </Section>
 
-      <footer className="">
+      <footer>
         <div className="container mx-auto max-w-6xl px-4 py-8 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} {PROFILE.name}. All Rights Reserved. |
           Clean code. Bold impact.
@@ -1447,34 +1667,3 @@ export default function Portfolio() {
     </div>
   );
 }
-
-// ========================= Dev Tests (non-blocking) =========================
-(function DevTests() {
-  try {
-    const results: { ok: boolean; msg: string }[] = [];
-    const assert = (cond: boolean, msg: string) =>
-      results.push({ ok: !!cond, msg });
-
-    // Core presence
-    assert(Array.isArray(SKILLS) && SKILLS.length > 0, "SKILLS present");
-    assert(typeof ThemeVars === "function", "ThemeVars component exists");
-
-    // Map wrappers (prevents 'adjacent JSX elements' issues)
-    assert(true, "Skills grid wrapped in a single motion.div");
-
-    // No <canvas>
-    const hasCanvas =
-      typeof document !== "undefined" && !!document.querySelector("canvas");
-    assert(!hasCanvas, "No <canvas> elements present");
-
-    // Nav pulse CSS injected
-    const cssOK =
-      typeof document !== "undefined" &&
-      /nav-pulse/.test(document.head.textContent || "");
-    assert(cssOK, "Nav pulse CSS present");
-
-    const failed = results.filter((r) => !r.ok);
-    if (failed.length) console.warn("[DevTests] Some checks failed:", failed);
-    else console.log("[DevTests] All checks passed");
-  } catch (_) {}
-})();
